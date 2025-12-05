@@ -22,19 +22,9 @@ class OverlayApp extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    // 1. Paper Base Tint & Vignette
+                    // 1. Paper Base Tint (Flat)
                     Container(
-                      decoration: BoxDecoration(
-                        gradient: RadialGradient(
-                          center: Alignment.center,
-                          radius: 1.0, // Reduced radius for stronger vignette
-                          colors: [
-                            const Color(0xFFFFFDF5).withValues(alpha: 0.15), // Center: Creamy White
-                            const Color(0xFFE8DCCA).withValues(alpha: 0.45), // Edges: Warm Paper
-                          ],
-                          stops: const [0.3, 1.0],
-                        ),
-                      ),
+                      color: const Color(0xFFF5E6D3).withValues(alpha: 0.25),
                     ),
 
                     // 2. Paper Texture / Grain

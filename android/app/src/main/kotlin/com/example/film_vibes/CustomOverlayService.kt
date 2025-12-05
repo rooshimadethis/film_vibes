@@ -23,7 +23,12 @@ class CustomOverlayService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (windowManager == null) {
-            showOverlay()
+            try {
+                showOverlay()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                stopSelf()
+            }
         }
         return START_STICKY
     }
@@ -40,12 +45,13 @@ class CustomOverlayService : Service() {
         }
 
         // Initialize Flutter engine with overlay_main entrypoint
-        flutterEngine = FlutterEngine(this)
+        // Use applicationContext to avoid context leaks and ensure stable initialization
+        flutterEngine = FlutterEngine(applicationContext)
         
         // Load the overlay_main entrypoint from lib/overlay_main.dart
         val loader = FlutterInjector.instance().flutterLoader()
-        loader.startInitialization(this)
-        loader.ensureInitializationComplete(this, null)
+        loader.startInitialization(applicationContext)
+        loader.ensureInitializationComplete(applicationContext, null)
         
         flutterEngine!!.dartExecutor.executeDartEntrypoint(
             DartExecutor.DartEntrypoint(
@@ -56,6 +62,8 @@ class CustomOverlayService : Service() {
 
         // Create FlutterView with TextureView for transparency
         flutterView = FlutterView(this, FlutterTextureView(this))
+        // Ensure transparency is set before attaching
+        flutterView!!.setBackgroundColor(android.graphics.Color.TRANSPARENT)
         flutterView!!.attachToFlutterEngine(flutterEngine!!)
 
         // Configure window layout parameters
@@ -79,13 +87,10 @@ class CustomOverlayService : Service() {
 
         // Manually set height to cover full screen including navigation bar
         val displayMetrics = android.util.DisplayMetrics()
-        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
-        windowManager!!.defaultDisplay.getRealMetrics(displayMetrics)
+        val wm = getSystemService(WINDOW_SERVICE) as WindowManager
+        wm.defaultDisplay.getRealMetrics(displayMetrics)
         layoutParams.height = displayMetrics.heightPixels + 1000 // Add extra buffer to ensure coverage
         layoutParams.width = displayMetrics.widthPixels
-
-        // Ensure FlutterView is transparent
-        flutterView!!.setBackgroundColor(android.graphics.Color.TRANSPARENT)
 
         // Handle display cutouts (notch) for Android P+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -94,7 +99,10 @@ class CustomOverlayService : Service() {
         }
 
         // Add view to window manager
-        windowManager!!.addView(flutterView, layoutParams)
+        wm.addView(flutterView, layoutParams)
+        
+        // Only assign windowManager if addView succeeded
+        windowManager = wm
     }
 
     private fun createNotificationChannel(): String {
