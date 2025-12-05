@@ -39,7 +39,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         'tintOpacity': _tintOpacity,
       });
     } catch (e) {
-      print('Error updating settings: $e');
+      debugPrint('Error updating settings: $e');
     }
   }
 
@@ -88,7 +88,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         _isOverlayGranted = granted;
       });
     } catch (e) {
-      print('Error checking permission: $e');
+      debugPrint('Error checking permission: $e');
     }
   }
 
@@ -99,7 +99,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         _isOverlayGranted = granted;
       });
     } catch (e) {
-      print('Error requesting permission: $e');
+      debugPrint('Error requesting permission: $e');
     }
   }
 
@@ -114,7 +114,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         _isOverlayRunning = true;
       });
     } catch (e) {
-      print('Error starting overlay: $e');
+      debugPrint('Error starting overlay: $e');
     }
   }
 
@@ -125,7 +125,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         _isOverlayRunning = false;
       });
     } catch (e) {
-      print('Error stopping overlay: $e');
+      debugPrint('Error stopping overlay: $e');
     }
   }
 

@@ -17,5 +17,5 @@ void main() {
 
   final png = img.encodePng(image);
   File('assets/film_grain.png').writeAsBytesSync(png);
-  print('Generated assets/film_grain.png');
+  stdout.writeln('Generated assets/film_grain.png');
 }
