@@ -8,8 +8,8 @@ class OverlaySettings extends ChangeNotifier {
   // Defaults tuned to "The Color Science Configuration"
   // Base: 10% (0.10)
   // Grain: 3% variance (approx 0.05-0.10 range for visual texture)
-  double _baseOpacity = 0.10;
-  double _grainOpacity = 0.05;
+  double _baseOpacity = 0.08;
+  double _grainOpacity = 0.19;
   double _tintOpacity = 0.0;
 
   double get baseOpacity => _baseOpacity;
@@ -44,13 +44,23 @@ class OverlayApp extends StatefulWidget {
   State<OverlayApp> createState() => _OverlayAppState();
 }
 
-class _OverlayAppState extends State<OverlayApp> {
+class _OverlayAppState extends State<OverlayApp> with SingleTickerProviderStateMixin {
   final OverlaySettings _settings = OverlaySettings();
   static const MethodChannel platform = MethodChannel('paper_vibes/overlay_control');
+  late AnimationController _controller;
+  late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
+    
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
+    _controller.forward();
+
     platform.setMethodCallHandler(_handleMethodCall);
     
     // Add a direct listener that forces setState
@@ -65,6 +75,12 @@ class _OverlayAppState extends State<OverlayApp> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchInitialSettings();
     });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchInitialSettings() async {
@@ -110,44 +126,47 @@ class _OverlayAppState extends State<OverlayApp> {
             fit: StackFit.expand,
             children: [
               // Original overlay content
-              IgnorePointer(
-                ignoring: true,
-                child: AnimatedBuilder(
-                  animation: _settings,
-                  builder: (context, child) {
-                    final baseOpacity = _settings.baseOpacity;
-                    final grainOpacity = _settings.grainOpacity;
-                    final tintOpacity = _settings.tintOpacity;
+              FadeTransition(
+                opacity: _animation,
+                child: IgnorePointer(
+                  ignoring: true,
+                  child: AnimatedBuilder(
+                    animation: _settings,
+                    builder: (context, child) {
+                      final baseOpacity = _settings.baseOpacity;
+                      final grainOpacity = _settings.grainOpacity;
+                      final tintOpacity = _settings.tintOpacity;
 
-                    return Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        // 1. Paper Base Tint (The Illuminant)
-                        Container(
-                          color: const Color(0xFFF8F2E6).withValues(alpha: baseOpacity),
-                        ),
-
-                        // 2. Paper Texture / Grain (Tooth + Pulp)
-                        Opacity(
-                          opacity: grainOpacity,
-                          child: Image.asset(
-                            'assets/paper_texture.png', 
-                            fit: BoxFit.cover,
-                            color: const Color(0xFFF8F2E6), // Tint the texture to match the paper
-                            // Default blend mode is srcIn, which effectively tints the alpha mask
-                            errorBuilder: (context, error, stackTrace) {
-                              return const SizedBox();
-                            },
+                      return Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          // 1. Paper Base Tint (The Illuminant)
+                          Container(
+                            color: const Color(0xFFF8F2E6).withValues(alpha: baseOpacity),
                           ),
-                        ),
-                        
-                        // 3. Warm Tint Overlay (Optional extra warmth)
-                        Container(
-                          color: const Color(0xFFF8F2E6).withValues(alpha: tintOpacity),
-                        )
-                      ],
-                    );
-                  },
+
+                          // 2. Paper Texture / Grain (Tooth + Pulp)
+                          Opacity(
+                            opacity: grainOpacity,
+                            child: Image.asset(
+                              'assets/paper_texture.png', 
+                              fit: BoxFit.cover,
+                              color: const Color(0xFFF8F2E6), // Tint the texture to match the paper
+                              // Default blend mode is srcIn, which effectively tints the alpha mask
+                              errorBuilder: (context, error, stackTrace) {
+                                return const SizedBox();
+                              },
+                            ),
+                          ),
+                          
+                          // 3. Warm Tint Overlay (Optional extra warmth)
+                          Container(
+                            color: const Color(0xFFF8F2E6).withValues(alpha: tintOpacity),
+                          )
+                        ],
+                      );
+                    },
+                  ),
                 ),
               ),
             ],

@@ -27,9 +27,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   bool _isOverlayRunning = false;
   
   // Overlay Settings
-  double _baseOpacity = 0.25;
-  double _grainOpacity = 0.40;
-  double _tintOpacity = 0.10;
+  double _baseOpacity = 0.08;
+  double _grainOpacity = 0.19;
+  double _tintOpacity = 0.0;
 
   Future<void> _updateOverlaySettings() async {
     if (!_isOverlayRunning) return;
