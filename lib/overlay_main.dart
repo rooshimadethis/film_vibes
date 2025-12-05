@@ -5,9 +5,12 @@ import 'package:flutter/services.dart';
 // overlayMain has been moved to main.dart
 
 class OverlaySettings extends ChangeNotifier {
-  double _baseOpacity = 0.25;
-  double _grainOpacity = 0.40;
-  double _tintOpacity = 0.10;
+  // Defaults tuned to "The Color Science Configuration"
+  // Base: 10% (0.10)
+  // Grain: 3% variance (approx 0.05-0.10 range for visual texture)
+  double _baseOpacity = 0.10;
+  double _grainOpacity = 0.05;
+  double _tintOpacity = 0.0;
 
   double get baseOpacity => _baseOpacity;
   double get grainOpacity => _grainOpacity;
@@ -114,30 +117,32 @@ class _OverlayAppState extends State<OverlayApp> {
                     final baseOpacity = _settings.baseOpacity;
                     final grainOpacity = _settings.grainOpacity;
                     final tintOpacity = _settings.tintOpacity;
+
                     return Stack(
                       fit: StackFit.expand,
                       children: [
-                        // 1. Paper Base Tint (Flat)
+                        // 1. Paper Base Tint (The Illuminant)
                         Container(
-                          color: const Color(0xFFF5E6D3).withValues(alpha: baseOpacity),
+                          color: const Color(0xFFF8F2E6).withValues(alpha: baseOpacity),
                         ),
 
-                        // 2. Paper Texture / Grain
+                        // 2. Paper Texture / Grain (Tooth + Pulp)
                         Opacity(
                           opacity: grainOpacity,
                           child: Image.asset(
-                            'assets/film_grain.png', 
-                            repeat: ImageRepeat.repeat,
-                            fit: BoxFit.none,
+                            'assets/paper_texture.png', 
+                            fit: BoxFit.cover,
+                            color: const Color(0xFFF8F2E6), // Tint the texture to match the paper
+                            colorBlendMode: BlendMode.modulate, // Or srcIn/modulate to tint
                             errorBuilder: (context, error, stackTrace) {
                               return const SizedBox();
                             },
                           ),
                         ),
                         
-                        // 3. Warm Tint Overlay
+                        // 3. Warm Tint Overlay (Optional extra warmth)
                         Container(
-                          color: const Color(0xFFF5E6D3).withValues(alpha: tintOpacity),
+                          color: const Color(0xFFF8F2E6).withValues(alpha: tintOpacity),
                         )
                       ],
                     );
