@@ -23,7 +23,17 @@ class CustomOverlayService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    private var initialBaseOpacity = 0.25
+    private var initialGrainOpacity = 0.40
+    private var initialTintOpacity = 0.10
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent != null) {
+            initialBaseOpacity = intent.getDoubleExtra("baseOpacity", 0.25)
+            initialGrainOpacity = intent.getDoubleExtra("grainOpacity", 0.40)
+            initialTintOpacity = intent.getDoubleExtra("tintOpacity", 0.10)
+        }
+
         if (windowManager == null) {
             try {
                 showOverlay()
@@ -105,6 +115,21 @@ class CustomOverlayService : Service() {
         
         // Only assign windowManager if addView succeeded
         windowManager = wm
+
+        // Setup MethodChannel to handle getInitialSettings
+        flutterEngine?.dartExecutor?.binaryMessenger?.let { messenger ->
+            MethodChannel(messenger, "film_vibes/overlay_control").setMethodCallHandler { call, result ->
+                if (call.method == "getInitialSettings") {
+                    result.success(mapOf(
+                        "baseOpacity" to initialBaseOpacity,
+                        "grainOpacity" to initialGrainOpacity,
+                        "tintOpacity" to initialTintOpacity
+                    ))
+                } else {
+                    result.notImplemented()
+                }
+            }
+        }
     }
 
     private fun createNotificationChannel(): String {
@@ -125,17 +150,23 @@ class CustomOverlayService : Service() {
     private val updateReceiver = object : android.content.BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "com.example.film_vibes.UPDATE_OVERLAY") {
+                android.util.Log.d("CustomOverlayService", "Received update broadcast")
                 val baseOpacity = intent.getDoubleExtra("baseOpacity", 0.25)
                 val grainOpacity = intent.getDoubleExtra("grainOpacity", 0.40)
                 val tintOpacity = intent.getDoubleExtra("tintOpacity", 0.10)
 
-                flutterEngine?.dartExecutor?.binaryMessenger?.let { messenger ->
-                    MethodChannel(messenger, "film_vibes/overlay_control")
-                        .invokeMethod("updateSettings", mapOf(
-                            "baseOpacity" to baseOpacity,
-                            "grainOpacity" to grainOpacity,
-                            "tintOpacity" to tintOpacity
-                        ))
+                if (flutterEngine == null) {
+                    android.util.Log.e("CustomOverlayService", "flutterEngine is NULL")
+                } else {
+                    android.util.Log.d("CustomOverlayService", "Sending to Flutter: base=$baseOpacity")
+                    flutterEngine?.dartExecutor?.binaryMessenger?.let { messenger ->
+                        MethodChannel(messenger, "film_vibes/overlay_control")
+                            .invokeMethod("updateSettings", mapOf(
+                                "baseOpacity" to baseOpacity,
+                                "grainOpacity" to grainOpacity,
+                                "tintOpacity" to tintOpacity
+                            ))
+                    }
                 }
             }
         }

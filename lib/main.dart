@@ -20,7 +20,7 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   static const platform = MethodChannel('film_vibes/overlay');
   bool _isOverlayGranted = false;
   bool _isOverlayRunning = false;
@@ -64,7 +64,21 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _checkPermissions();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkPermissions();
+    }
   }
 
   Future<void> _checkPermissions() async {
@@ -91,7 +105,11 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _startOverlay() async {
     try {
-      await platform.invokeMethod('startOverlay');
+      await platform.invokeMethod('startOverlay', {
+        'baseOpacity': _baseOpacity,
+        'grainOpacity': _grainOpacity,
+        'tintOpacity': _tintOpacity,
+      });
       setState(() {
         _isOverlayRunning = true;
       });

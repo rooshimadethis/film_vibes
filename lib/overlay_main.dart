@@ -22,11 +22,36 @@ class _OverlayAppState extends State<OverlayApp> {
   void initState() {
     super.initState();
     platform.setMethodCallHandler(_handleMethodCall);
+    _fetchInitialSettings();
+  }
+
+  Future<void> _fetchInitialSettings() async {
+    try {
+      final Map<dynamic, dynamic>? initialSettings = await platform.invokeMapMethod('getInitialSettings');
+      if (initialSettings != null && mounted) {
+        print("OverlayMain: Initial settings received: $initialSettings");
+        setState(() {
+          if (initialSettings.containsKey('baseOpacity')) {
+            _baseOpacity = (initialSettings['baseOpacity'] as num).toDouble();
+          }
+          if (initialSettings.containsKey('grainOpacity')) {
+            _grainOpacity = (initialSettings['grainOpacity'] as num).toDouble();
+          }
+          if (initialSettings.containsKey('tintOpacity')) {
+            _tintOpacity = (initialSettings['tintOpacity'] as num).toDouble();
+          }
+        });
+      }
+    } catch (e) {
+      print("OverlayMain: Error fetching initial settings: $e");
+    }
   }
 
   Future<void> _handleMethodCall(MethodCall call) async {
+    print("OverlayMain: Received method call ${call.method}");
     if (call.method == 'updateSettings') {
       final Map<dynamic, dynamic> args = call.arguments;
+      print("OverlayMain: Args: $args");
       if (mounted) {
         setState(() {
           if (args.containsKey('baseOpacity')) {
@@ -45,6 +70,7 @@ class _OverlayAppState extends State<OverlayApp> {
 
   @override
   Widget build(BuildContext context) {
+    print("OverlayApp: build called. Base: $_baseOpacity, Grain: $_grainOpacity, Tint: $_tintOpacity");
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Material(
@@ -62,7 +88,7 @@ class _OverlayAppState extends State<OverlayApp> {
                   children: [
                     // 1. Paper Base Tint (Flat)
                     Container(
-                      color: const Color(0xFFF5E6D3).withValues(alpha: _baseOpacity),
+                      color: const Color(0xFFF5E6D3).withOpacity(_baseOpacity),
                     ),
 
                     // 2. Paper Texture / Grain
@@ -77,7 +103,7 @@ class _OverlayAppState extends State<OverlayApp> {
                     
                     // 3. Warm Tint Overlay
                     Container(
-                      color: const Color(0xFFF5E6D3).withValues(alpha: _tintOpacity),
+                      color: const Color(0xFFF5E6D3).withOpacity(_tintOpacity),
                     )
                   ],
                 ),
