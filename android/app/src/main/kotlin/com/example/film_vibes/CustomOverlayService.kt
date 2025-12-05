@@ -72,9 +72,17 @@ class CustomOverlayService : Service() {
             WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
             WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+            WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR,
             PixelFormat.TRANSLUCENT
         )
+
+        // Manually set height to cover full screen including navigation bar
+        val displayMetrics = android.util.DisplayMetrics()
+        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+        windowManager!!.defaultDisplay.getRealMetrics(displayMetrics)
+        layoutParams.height = displayMetrics.heightPixels + 1000 // Add extra buffer to ensure coverage
+        layoutParams.width = displayMetrics.widthPixels
 
         // Ensure FlutterView is transparent
         flutterView!!.setBackgroundColor(android.graphics.Color.TRANSPARENT)
@@ -86,7 +94,6 @@ class CustomOverlayService : Service() {
         }
 
         // Add view to window manager
-        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         windowManager!!.addView(flutterView, layoutParams)
     }
 
