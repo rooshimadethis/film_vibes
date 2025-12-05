@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
-@pragma('vm:entry-point')
-void overlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-  runApp(const OverlayApp());
-}
+// overlayMain has been moved to main.dart
 
 class OverlayApp extends StatelessWidget {
   const OverlayApp({super.key});
@@ -33,25 +27,30 @@ class OverlayApp extends StatelessWidget {
                       decoration: BoxDecoration(
                         gradient: RadialGradient(
                           center: Alignment.center,
-                          radius: 1.2,
+                          radius: 1.0, // Reduced radius for stronger vignette
                           colors: [
-                            const Color(0xFFFDFBF7).withValues(alpha: 0.10), // Center: Clean Paper
-                            const Color(0xFFE6D6BC).withValues(alpha: 0.30), // Edges: Aged Paper
+                            const Color(0xFFFFFDF5).withValues(alpha: 0.15), // Center: Creamy White
+                            const Color(0xFFE8DCCA).withValues(alpha: 0.45), // Edges: Warm Paper
                           ],
-                          stops: const [0.2, 1.0],
+                          stops: const [0.3, 1.0],
                         ),
                       ),
                     ),
 
                     // 2. Paper Texture / Grain
                     Opacity(
-                      opacity: 0.15,
+                      opacity: 0.40, // Increased opacity significantly
                       child: Image.asset(
                         'assets/film_grain.png', 
                         repeat: ImageRepeat.repeat,
                         fit: BoxFit.none,
                       ),
                     ),
+                    
+                    // 3. Warm Tint Overlay
+                    Container(
+                      color: const Color(0xFFF5E6D3).withValues(alpha: 0.10),
+                    )
                   ],
                 ),
               ),
