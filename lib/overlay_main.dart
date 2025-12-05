@@ -46,7 +46,7 @@ class OverlayApp extends StatefulWidget {
 
 class _OverlayAppState extends State<OverlayApp> {
   final OverlaySettings _settings = OverlaySettings();
-  static const MethodChannel platform = MethodChannel('film_vibes/overlay_control');
+  static const MethodChannel platform = MethodChannel('paper_vibes/overlay_control');
 
   @override
   void initState() {
@@ -98,6 +98,7 @@ class _OverlayAppState extends State<OverlayApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Paper Vibes Overlay',
       debugShowCheckedModeBanner: false,
       home: Material(
         type: MaterialType.transparency,

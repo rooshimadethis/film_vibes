@@ -21,7 +21,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  static const platform = MethodChannel('film_vibes/overlay');
+  static const platform = MethodChannel('paper_vibes/overlay');
   bool _isOverlayGranted = false;
   bool _isBatteryOptimizationDisabled = false;
   bool _isOverlayRunning = false;
@@ -155,9 +155,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Paper Vibes',
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Film Vibes Setup'),
+          title: const Text('Paper Vibes Setup'),
           actions: [
             IconButton(
               onPressed: _checkPermissions,
@@ -229,7 +230,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               if (_isOverlayGranted) ...[
                 ElevatedButton(
                   onPressed: _isOverlayRunning ? null : _startOverlay,
-                  child: const Text('Start Film Overlay'),
+                  child: const Text('Start Paper Overlay'),
                 ),
                 const SizedBox(height: 10),
                 ElevatedButton(

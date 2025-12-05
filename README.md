@@ -1,24 +1,24 @@
-# Film Vibes 🎞️
+# Paper Vibes 📄
 
 A Flutter application that brings a warm, analog paper-like aesthetic to your entire Android experience.
 
 ## Overview
 
-Film Vibes creates a system-wide overlay that sits on top of all your apps, applying a customizable film grain and paper texture effect. It's designed to make your digital screen feel more organic and less harsh.
+Paper Vibes creates a system-wide overlay that sits on top of all your apps, applying a customizable paper texture effect. It's designed to make your digital screen feel more organic and less harsh.
 
 ## Screenshots
 
 | App Configuration | Before (Off) | After (On) |
 |:---:|:---:|:---:|
 | <img src="screenshots/screenshot.png" width="250" /> | <img src="screenshots/off.png" width="250" /> | <img src="screenshots/on.png" width="250" /> |
-| *Adjusting the vibe* | *Standard Look* | *With Film Vibes* |
+| *Adjusting the vibe* | *Standard Look* | *With Paper Vibes* |
 
 ## Features
 
 - **System-Wide Overlay**: The effect persists across all apps and the home screen.
 - **Customizable Aesthetics**:
   - **Base Tint**: Adjust the warmth of the paper base.
-  - **Grain**: Control the intensity of the film grain texture.
+  - **Grain**: Control the intensity of the paper texture.
   - **Warmth**: Fine-tune the color temperature.
 - **Battery Optimization**: Built-in handling to ensure the overlay persists in the background.
 
