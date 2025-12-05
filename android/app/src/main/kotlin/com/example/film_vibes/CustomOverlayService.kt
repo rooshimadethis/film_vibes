@@ -20,6 +20,7 @@ class CustomOverlayService : Service() {
     private var windowManager: WindowManager? = null
     private var flutterView: FlutterView? = null
     private var flutterEngine: FlutterEngine? = null
+    private var overlayControlChannel: MethodChannel? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -77,6 +78,9 @@ class CustomOverlayService : Service() {
         // Ensure transparency is set before attaching
         flutterView!!.setBackgroundColor(android.graphics.Color.TRANSPARENT)
         flutterView!!.attachToFlutterEngine(flutterEngine!!)
+        
+        // CRITICAL: Manually signal that the app is resumed so rendering works
+        flutterEngine!!.lifecycleChannel.appIsResumed()
 
         // Configure window layout parameters
         val layoutParams = WindowManager.LayoutParams(
@@ -118,7 +122,8 @@ class CustomOverlayService : Service() {
 
         // Setup MethodChannel to handle getInitialSettings
         flutterEngine?.dartExecutor?.binaryMessenger?.let { messenger ->
-            MethodChannel(messenger, "film_vibes/overlay_control").setMethodCallHandler { call, result ->
+            overlayControlChannel = MethodChannel(messenger, "film_vibes/overlay_control")
+            overlayControlChannel?.setMethodCallHandler { call, result ->
                 if (call.method == "getInitialSettings") {
                     result.success(mapOf(
                         "baseOpacity" to initialBaseOpacity,
@@ -155,18 +160,15 @@ class CustomOverlayService : Service() {
                 val grainOpacity = intent.getDoubleExtra("grainOpacity", 0.40)
                 val tintOpacity = intent.getDoubleExtra("tintOpacity", 0.10)
 
-                if (flutterEngine == null) {
-                    android.util.Log.e("CustomOverlayService", "flutterEngine is NULL")
+                if (overlayControlChannel == null) {
+                    android.util.Log.e("CustomOverlayService", "overlayControlChannel is NULL")
                 } else {
-                    android.util.Log.d("CustomOverlayService", "Sending to Flutter: base=$baseOpacity")
-                    flutterEngine?.dartExecutor?.binaryMessenger?.let { messenger ->
-                        MethodChannel(messenger, "film_vibes/overlay_control")
-                            .invokeMethod("updateSettings", mapOf(
-                                "baseOpacity" to baseOpacity,
-                                "grainOpacity" to grainOpacity,
-                                "tintOpacity" to tintOpacity
-                            ))
-                    }
+                    android.util.Log.d("CustomOverlayService", "Sending to Flutter: base=$baseOpacity, grain=$grainOpacity, tint=$tintOpacity")
+                    overlayControlChannel?.invokeMethod("updateSettings", mapOf(
+                        "baseOpacity" to baseOpacity,
+                        "grainOpacity" to grainOpacity,
+                        "tintOpacity" to tintOpacity
+                    ))
                 }
             }
         }
@@ -198,6 +200,8 @@ class CustomOverlayService : Service() {
             }
             view.detachFromFlutterEngine()
         }
+        overlayControlChannel?.setMethodCallHandler(null)
+        overlayControlChannel = null
         flutterEngine?.destroy()
         flutterEngine = null
         flutterView = null
