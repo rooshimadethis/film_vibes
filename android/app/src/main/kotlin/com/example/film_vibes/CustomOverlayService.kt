@@ -50,7 +50,7 @@ class CustomOverlayService : Service() {
         // Start as foreground service
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notification = android.app.Notification.Builder(this, createNotificationChannel())
-                .setContentTitle("Film Vibes")
+                .setContentTitle("Paper Vibes")
                 .setContentText("Overlay active")
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .build()
@@ -122,7 +122,7 @@ class CustomOverlayService : Service() {
 
         // Setup MethodChannel to handle getInitialSettings
         flutterEngine?.dartExecutor?.binaryMessenger?.let { messenger ->
-            overlayControlChannel = MethodChannel(messenger, "film_vibes/overlay_control")
+            overlayControlChannel = MethodChannel(messenger, "paper_vibes/overlay_control")
             overlayControlChannel?.setMethodCallHandler { call, result ->
                 if (call.method == "getInitialSettings") {
                     result.success(mapOf(
@@ -139,10 +139,10 @@ class CustomOverlayService : Service() {
 
     private fun createNotificationChannel(): String {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channelId = "film_vibes_overlay"
+            val channelId = "paper_vibes_overlay"
             val channel = android.app.NotificationChannel(
                 channelId,
-                "Film Vibes Overlay",
+                "Paper Vibes Overlay",
                 android.app.NotificationManager.IMPORTANCE_LOW
             )
             val manager = getSystemService(android.app.NotificationManager::class.java)
@@ -154,7 +154,7 @@ class CustomOverlayService : Service() {
 
     private val updateReceiver = object : android.content.BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == "com.example.film_vibes.UPDATE_OVERLAY") {
+            if (intent?.action == "com.example.paper_vibes.UPDATE_OVERLAY") {
                 android.util.Log.d("CustomOverlayService", "Received update broadcast")
                 val baseOpacity = intent.getDoubleExtra("baseOpacity", 0.25)
                 val grainOpacity = intent.getDoubleExtra("grainOpacity", 0.40)
@@ -176,7 +176,7 @@ class CustomOverlayService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        val filter = android.content.IntentFilter("com.example.film_vibes.UPDATE_OVERLAY")
+        val filter = android.content.IntentFilter("com.example.paper_vibes.UPDATE_OVERLAY")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(updateReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {

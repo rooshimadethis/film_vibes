@@ -21,14 +21,15 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  static const platform = MethodChannel('film_vibes/overlay');
+  static const platform = MethodChannel('paper_vibes/overlay');
   bool _isOverlayGranted = false;
+  bool _isBatteryOptimizationDisabled = false;
   bool _isOverlayRunning = false;
   
   // Overlay Settings
-  double _baseOpacity = 0.25;
-  double _grainOpacity = 0.40;
-  double _tintOpacity = 0.10;
+  double _baseOpacity = 0.08;
+  double _grainOpacity = 0.19;
+  double _tintOpacity = 0.0;
 
   Future<void> _updateOverlaySettings() async {
     if (!_isOverlayRunning) return;
@@ -87,6 +88,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       setState(() {
         _isOverlayGranted = granted;
       });
+      _checkBatteryOptimization();
     } catch (e) {
       debugPrint('Error checking permission: $e');
     }
@@ -100,6 +102,27 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       });
     } catch (e) {
       debugPrint('Error requesting permission: $e');
+    }
+  }
+
+  Future<void> _checkBatteryOptimization() async {
+    try {
+      final bool disabled = await platform.invokeMethod('checkBatteryOptimization');
+      setState(() {
+        _isBatteryOptimizationDisabled = disabled;
+      });
+    } catch (e) {
+      debugPrint('Error checking battery optimization: $e');
+    }
+  }
+
+  Future<void> _requestBatteryOptimization() async {
+    try {
+      await platform.invokeMethod('requestBatteryOptimization');
+      // The user will be taken to settings, so we can't know immediately if they granted it.
+      // We rely on lifecycle resume to check again.
+    } catch (e) {
+      debugPrint('Error requesting battery optimization: $e');
     }
   }
 
@@ -132,9 +155,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Paper Vibes',
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Film Vibes Setup'),
+          title: const Text('Paper Vibes Setup'),
           actions: [
             IconButton(
               onPressed: _checkPermissions,
@@ -194,10 +218,19 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   onPressed: _requestPermission,
                   child: const Text('Request Permission'),
                 ),
+              if (_isOverlayGranted && !_isBatteryOptimizationDisabled)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: ElevatedButton(
+                    onPressed: _requestBatteryOptimization,
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                    child: const Text('Disable Battery Optimization (Recommended)', style: TextStyle(color: Colors.white)),
+                  ),
+                ),
               if (_isOverlayGranted) ...[
                 ElevatedButton(
                   onPressed: _isOverlayRunning ? null : _startOverlay,
-                  child: const Text('Start Film Overlay'),
+                  child: const Text('Start Paper Overlay'),
                 ),
                 const SizedBox(height: 10),
                 ElevatedButton(
