@@ -1,6 +1,7 @@
 package com.example.film_vibes
 
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
@@ -13,6 +14,7 @@ import io.flutter.embedding.engine.dart.DartExecutor
 import io.flutter.FlutterInjector
 
 import io.flutter.embedding.android.FlutterTextureView
+import io.flutter.plugin.common.MethodChannel
 
 class CustomOverlayService : Service() {
     private var windowManager: WindowManager? = null
@@ -120,8 +122,42 @@ class CustomOverlayService : Service() {
         return ""
     }
 
+    private val updateReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "com.example.film_vibes.UPDATE_OVERLAY") {
+                val baseOpacity = intent.getDoubleExtra("baseOpacity", 0.25)
+                val grainOpacity = intent.getDoubleExtra("grainOpacity", 0.40)
+                val tintOpacity = intent.getDoubleExtra("tintOpacity", 0.10)
+
+                flutterEngine?.dartExecutor?.binaryMessenger?.let { messenger ->
+                    MethodChannel(messenger, "film_vibes/overlay_control")
+                        .invokeMethod("updateSettings", mapOf(
+                            "baseOpacity" to baseOpacity,
+                            "grainOpacity" to grainOpacity,
+                            "tintOpacity" to tintOpacity
+                        ))
+                }
+            }
+        }
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        val filter = android.content.IntentFilter("com.example.film_vibes.UPDATE_OVERLAY")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(updateReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(updateReceiver, filter)
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        try {
+            unregisterReceiver(updateReceiver)
+        } catch (e: Exception) {
+            // Receiver might not be registered
+        }
         flutterView?.let { view ->
             try {
                 windowManager?.removeView(view)

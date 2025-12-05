@@ -42,6 +42,18 @@ class MainActivity : FlutterActivity() {
                     stopService(intent)
                     result.success(null)
                 }
+                "updateOverlaySettings" -> {
+                    val baseOpacity = call.argument<Double>("baseOpacity") ?: 0.25
+                    val grainOpacity = call.argument<Double>("grainOpacity") ?: 0.40
+                    val tintOpacity = call.argument<Double>("tintOpacity") ?: 0.10
+                    
+                    val intent = Intent("com.example.film_vibes.UPDATE_OVERLAY")
+                    intent.putExtra("baseOpacity", baseOpacity)
+                    intent.putExtra("grainOpacity", grainOpacity)
+                    intent.putExtra("tintOpacity", tintOpacity)
+                    sendBroadcast(intent)
+                    result.success(null)
+                }
                 else -> result.notImplemented()
             }
         }

@@ -24,6 +24,42 @@ class _MyAppState extends State<MyApp> {
   static const platform = MethodChannel('film_vibes/overlay');
   bool _isOverlayGranted = false;
   bool _isOverlayRunning = false;
+  
+  // Overlay Settings
+  double _baseOpacity = 0.25;
+  double _grainOpacity = 0.40;
+  double _tintOpacity = 0.10;
+
+  Future<void> _updateOverlaySettings() async {
+    if (!_isOverlayRunning) return;
+    try {
+      await platform.invokeMethod('updateOverlaySettings', {
+        'baseOpacity': _baseOpacity,
+        'grainOpacity': _grainOpacity,
+        'tintOpacity': _tintOpacity,
+      });
+    } catch (e) {
+      print('Error updating settings: $e');
+    }
+  }
+
+  Widget _buildSlider(String label, double value, ValueChanged<double> onChanged) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('$label: ${(value * 100).toInt()}%'),
+          Slider(
+            value: value,
+            min: 0.0,
+            max: 1.0,
+            onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -150,6 +186,21 @@ class _MyAppState extends State<MyApp> {
                   onPressed: _isOverlayRunning ? _stopOverlay : null,
                   child: const Text('Stop Overlay'),
                 ),
+                const SizedBox(height: 20),
+                const Divider(),
+                const Text('Adjust Overlay Style', style: TextStyle(fontWeight: FontWeight.bold)),
+                _buildSlider('Base Opacity', _baseOpacity, (val) {
+                  setState(() => _baseOpacity = val);
+                  _updateOverlaySettings();
+                }),
+                _buildSlider('Grain Opacity', _grainOpacity, (val) {
+                  setState(() => _grainOpacity = val);
+                  _updateOverlaySettings();
+                }),
+                _buildSlider('Tint Opacity', _tintOpacity, (val) {
+                  setState(() => _tintOpacity = val);
+                  _updateOverlaySettings();
+                }),
               ],
             ],
           ),
