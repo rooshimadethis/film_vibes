@@ -133,7 +133,7 @@ class _OverlayAppState extends State<OverlayApp> {
                             'assets/paper_texture.png', 
                             fit: BoxFit.cover,
                             color: const Color(0xFFF8F2E6), // Tint the texture to match the paper
-                            colorBlendMode: BlendMode.modulate, // Or srcIn/modulate to tint
+                            // Default blend mode is srcIn, which effectively tints the alpha mask
                             errorBuilder: (context, error, stackTrace) {
                               return const SizedBox();
                             },

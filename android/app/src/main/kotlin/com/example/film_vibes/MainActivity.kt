@@ -7,6 +7,8 @@ import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import android.content.Context
+import android.os.PowerManager
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "film_vibes/overlay"
@@ -63,6 +65,13 @@ class MainActivity : FlutterActivity() {
                     sendBroadcast(intent)
                     result.success(null)
                 }
+                "checkBatteryOptimization" -> {
+                    result.success(checkBatteryOptimization())
+                }
+                "requestBatteryOptimization" -> {
+                    requestBatteryOptimization()
+                    result.success(null)
+                }
                 else -> result.notImplemented()
             }
         }
@@ -83,6 +92,23 @@ class MainActivity : FlutterActivity() {
                 Uri.parse("package:$packageName")
             )
             startActivityForResult(intent, OVERLAY_PERMISSION_REQUEST_CODE)
+        }
+    }
+
+    private fun checkBatteryOptimization(): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+            return powerManager.isIgnoringBatteryOptimizations(packageName)
+        }
+        return true
+    }
+
+    private fun requestBatteryOptimization() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val intent = Intent()
+            intent.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+            intent.data = Uri.parse("package:$packageName")
+            startActivity(intent)
         }
     }
 }

@@ -23,6 +23,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   static const platform = MethodChannel('film_vibes/overlay');
   bool _isOverlayGranted = false;
+  bool _isBatteryOptimizationDisabled = false;
   bool _isOverlayRunning = false;
   
   // Overlay Settings
@@ -87,6 +88,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       setState(() {
         _isOverlayGranted = granted;
       });
+      _checkBatteryOptimization();
     } catch (e) {
       debugPrint('Error checking permission: $e');
     }
@@ -100,6 +102,27 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       });
     } catch (e) {
       debugPrint('Error requesting permission: $e');
+    }
+  }
+
+  Future<void> _checkBatteryOptimization() async {
+    try {
+      final bool disabled = await platform.invokeMethod('checkBatteryOptimization');
+      setState(() {
+        _isBatteryOptimizationDisabled = disabled;
+      });
+    } catch (e) {
+      debugPrint('Error checking battery optimization: $e');
+    }
+  }
+
+  Future<void> _requestBatteryOptimization() async {
+    try {
+      await platform.invokeMethod('requestBatteryOptimization');
+      // The user will be taken to settings, so we can't know immediately if they granted it.
+      // We rely on lifecycle resume to check again.
+    } catch (e) {
+      debugPrint('Error requesting battery optimization: $e');
     }
   }
 
@@ -193,6 +216,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 ElevatedButton(
                   onPressed: _requestPermission,
                   child: const Text('Request Permission'),
+                ),
+              if (_isOverlayGranted && !_isBatteryOptimizationDisabled)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: ElevatedButton(
+                    onPressed: _requestBatteryOptimization,
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                    child: const Text('Disable Battery Optimization (Recommended)', style: TextStyle(color: Colors.white)),
+                  ),
                 ),
               if (_isOverlayGranted) ...[
                 ElevatedButton(
