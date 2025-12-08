@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'overlay_main.dart'; // Import the overlay entry point
+import 'package:shared_preferences/shared_preferences.dart';
 
 @pragma('vm:entry-point')
 void overlayMain() {
@@ -44,7 +45,28 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     }
   }
 
-  Widget _buildSlider(String label, double value, ValueChanged<double> onChanged) {
+  Future<void> _saveSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('baseOpacity', _baseOpacity);
+    await prefs.setDouble('grainOpacity', _grainOpacity);
+    await prefs.setDouble('tintOpacity', _tintOpacity);
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _baseOpacity = prefs.getDouble('baseOpacity') ?? 0.08;
+      _grainOpacity = prefs.getDouble('grainOpacity') ?? 0.19;
+      _tintOpacity = prefs.getDouble('tintOpacity') ?? 0.0;
+    });
+    // If we want to ensure the overlay starts with these values if it was already running (unlikely on fresh launch but possible)
+     // Actually, we pass these values when starting, or update if running.
+     if (_isOverlayRunning) {
+       _updateOverlaySettings();
+     }
+  }
+
+  Widget _buildSlider(String label, double value, ValueChanged<double> onChanged, {ValueChanged<double>? onChangeEnd}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
       child: Column(
@@ -56,6 +78,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             min: 0.0,
             max: 1.0,
             onChanged: onChanged,
+            onChangeEnd: onChangeEnd,
           ),
         ],
       ),
@@ -66,6 +89,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _loadSettings();
     _checkPermissions();
   }
 
@@ -243,15 +267,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 _buildSlider('Base Opacity', _baseOpacity, (val) {
                   setState(() => _baseOpacity = val);
                   _updateOverlaySettings();
-                }),
+                }, onChangeEnd: (val) => _saveSettings()),
                 _buildSlider('Grain Opacity', _grainOpacity, (val) {
                   setState(() => _grainOpacity = val);
                   _updateOverlaySettings();
-                }),
+                }, onChangeEnd: (val) => _saveSettings()),
                 _buildSlider('Tint Opacity', _tintOpacity, (val) {
                   setState(() => _tintOpacity = val);
                   _updateOverlaySettings();
-                }),
+                }, onChangeEnd: (val) => _saveSettings()),
               ],
             ],
           ),

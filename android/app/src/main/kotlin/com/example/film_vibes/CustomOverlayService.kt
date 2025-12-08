@@ -174,6 +174,20 @@ class CustomOverlayService : Service() {
         }
     }
 
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (flutterView != null && windowManager != null) {
+            val displayMetrics = android.util.DisplayMetrics()
+            windowManager!!.defaultDisplay.getRealMetrics(displayMetrics)
+            
+            val layoutParams = flutterView!!.layoutParams as WindowManager.LayoutParams
+            layoutParams.height = displayMetrics.heightPixels + 1000
+            layoutParams.width = displayMetrics.widthPixels
+            
+            windowManager!!.updateViewLayout(flutterView, layoutParams)
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         val filter = android.content.IntentFilter("com.example.paper_vibes.UPDATE_OVERLAY")
